@@ -112,3 +112,4 @@ header{flex-wrap:wrap}
 .roles{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px}@media(max-width:700px){.roles{grid-template-columns:1fr}}
 .role{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:22px;display:grid;gap:10px;scroll-margin-top:20px}
 .role h3{margin:0;font-family:var(--display);font-weight:500;font-size:1.4rem}
+.sic{width:44px;height:44px;display:block;margin-bottom:10px}
