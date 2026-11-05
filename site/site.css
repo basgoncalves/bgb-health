@@ -120,3 +120,6 @@ header{flex-wrap:wrap}
 .pill-link:hover{background:var(--accent2)}
 .stat-link{display:block;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;text-decoration:none;color:inherit}.stat-link:hover{border-color:var(--accent)}.stat-link b{font:500 1.3rem var(--display);display:block;color:var(--accent)}.stat-link span{font-size:.85rem;color:var(--muted)}
 @media(max-width:620px){.stats{grid-template-columns:1fr}}
+.tl-scroll{max-height:250px;overflow-y:auto;padding-right:8px;scrollbar-width:thin;scrollbar-color:var(--accent) transparent;-webkit-mask-image:linear-gradient(#000 85%,transparent);mask-image:linear-gradient(#000 85%,transparent);padding-bottom:28px}
+.tl-scroll:before{bottom:auto;height:calc(var(--n,12)*76px)}
+.tl-scroll:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
