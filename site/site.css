@@ -105,3 +105,10 @@ a.person:hover{border-color:var(--accent)}
 header{flex-wrap:wrap}
 @media(max-width:760px){nav.topnav{display:flex!important;align-items:center}nav.topnav a:not(.btn){display:none}nav.topnav a.btn{margin-left:0!important}}
 .topnav{display:flex;align-items:center}
+
+.spec{margin:14px 0 0;font-size:.85rem}.spec a{color:var(--accent);font-weight:600;text-decoration:none}
+.try{margin-top:18px;display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap;border:1.5px dashed var(--accent);border-radius:16px;padding:14px 16px;background:var(--accent2)}
+.try b{display:block;font-family:var(--display);font-weight:500;font-size:1.15rem}.try span{color:var(--muted);font-size:.9rem}
+.roles{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px}@media(max-width:700px){.roles{grid-template-columns:1fr}}
+.role{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:22px;display:grid;gap:10px;scroll-margin-top:20px}
+.role h3{margin:0;font-family:var(--display);font-weight:500;font-size:1.4rem}
