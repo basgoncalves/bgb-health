@@ -34,6 +34,14 @@ input,select{font:inherit;color:var(--fg);background:var(--bg);border:1px solid 
 .bk .who{color:var(--muted);font-size:.88rem;overflow-wrap:anywhere}
 .bk .goal{font-size:.88rem;border-left:3px solid var(--line);padding-left:8px}
 .empty{color:var(--muted);text-align:center;padding:30px}
+.tk{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:6px 0 10px}
+.tk div{background:var(--bg);border-radius:10px;padding:8px 10px}.tk b{display:block;font:600 1.2rem "Fraunces",Georgia,serif;font-variant-numeric:tabular-nums}.tk span{font-size:.75rem;color:var(--muted)}
+@media(max-width:520px){.tk{grid-template-columns:repeat(2,1fr)}}
+.lg{display:flex;gap:14px;font-size:.78rem;color:var(--muted);margin-top:4px}.lg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.tops{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;font-size:.85rem}@media(max-width:520px){.tops{grid-template-columns:1fr}}
+.tops h4{margin:0 0 6px;font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.tops .r{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+#rng{padding:5px 8px}
 </style></head><body>
 <div class="w">
 <div class="top"><h1 style="display:flex;align-items:center;gap:10px"><img src="../bgb-icon.svg" alt="" width="32" height="32" style="border-radius:8px">BGB Bookings</h1><a href="../site/">← Client site</a></div>
@@ -58,7 +66,14 @@ input,select{font:inherit;color:var(--fg);background:var(--bg);border:1px solid 
   <button class="btn small" id="nt">Turn on notifications</button>
   <button class="btn small ghost" id="lo">Sign out</button>
  </div>
- <p class="msg" id="am" role="status"></p>
+<section class="card" id="traffic" style="margin-bottom:14px">
+  <div class="bar" style="justify-content:space-between;margin:0 0 6px"><b>Site traffic</b><select id="rng" aria-label="Range"><option value="7">7 days</option><option value="30" selected>30 days</option><option value="90">90 days</option></select></div>
+  <div class="tk" id="tk"></div>
+  <svg id="tchart" viewBox="0 0 600 180" style="width:100%;height:auto;display:block" role="img" aria-label="Visits and bookings per day"></svg>
+  <div class="lg"><span><i style="background:var(--accent)"></i>Visits</span><span><i style="background:var(--warm)"></i>Bookings</span></div>
+  <div class="tops" id="tops"></div>
+ </section>
+  <p class="msg" id="am" role="status"></p>
  <div class="list" id="list"></div>
 </div>
 </div>
@@ -73,7 +88,7 @@ if(!db){setTimeout(()=>bootFail("Couldn't reach the bookings service. Check your
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const fmt=t=>new Date(t).toLocaleString("en-GB",{timeZone:"Europe/Vienna",weekday:"short",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
 
-async function boot(){if(!db)return;let session=null;try{({data:{session}}=await Promise.race([db.auth.getSession(),new Promise((_,r)=>setTimeout(()=>r(0),6000))]))}catch(e){}$("boot").hidden=true;$("login").hidden=!!session;$("app").hidden=!session;if(session){load();notifState()}}
+async function boot(){if(!db)return;let session=null;try{({data:{session}}=await Promise.race([db.auth.getSession(),new Promise((_,r)=>setTimeout(()=>r(0),6000))]))}catch(e){}$("boot").hidden=true;$("login").hidden=!!session;$("app").hidden=!session;if(session){load();notifState();traffic()}}
 if(db)db.auth.onAuthStateChange(()=>boot());
 
 $("lf").onsubmit=async e=>{e.preventDefault();$("lm").textContent="Signing in…";
@@ -118,5 +133,25 @@ $("nt").onclick=async()=>{try{
  catch(e){$("am").textContent="Couldn't turn on notifications here. Open this page on its own (not inside Perry's tab) and try again."}};
 setInterval(()=>{if(!$("app").hidden&&!document.hidden)load()},60000);
 boot();
+
+const PN={index:"Home",book:"Booking",team:"Team",basilio:"Basílio",gwen:"Gwen"};
+async function traffic(){const days=+$("rng").value,since=new Date(Date.now()-days*864e5);since.setHours(0,0,0,0);
+ const [v,b]=await Promise.all([db.from("page_views").select("at,page,source,device").gte("at",since.toISOString()).limit(20000),
+  db.from("bookings").select("created_at").gte("created_at",since.toISOString())]);
+ if(v.error){$("traffic").hidden=true;return}
+ const key=d=>d.toLocaleDateString("en-CA",{timeZone:"Europe/Vienna"});const ds=[];for(let i=days-1;i>=0;i--){ds.push(key(new Date(Date.now()-i*864e5)))}
+ const vc=Object.fromEntries(ds.map(d=>[d,0])),bc={...vc};v.data.forEach(r=>{const k=key(new Date(r.at));if(k in vc)vc[k]++});(b.data||[]).forEach(r=>{const k=key(new Date(r.created_at));if(k in bc)bc[k]++});
+ const tv=v.data.length,tb=(b.data||[]).length,mob=v.data.filter(r=>r.device==="mobile").length;
+ $("tk").innerHTML=`<div><b>${tv}</b><span>Visits</span></div><div><b>${tb}</b><span>Bookings</span></div><div><b>${tv?(tb/tv*100).toFixed(1):0}%</b><span>Visit → booking</span></div><div><b>${tv?Math.round(mob/tv*100):0}%</b><span>On mobile</span></div>`;
+ const W=600,H=180,L=30,B=22,T=10,max=Math.max(4,...Object.values(vc)),step=(W-L)/ds.length,y=n=>H-B-(H-B-T)*n/max;
+ let g="";for(let t=0;t<=4;t++){const n=Math.round(max*t/4),yy=y(n);g+=`<line x1="${L}" x2="${W}" y1="${yy}" y2="${yy}" stroke="var(--line)"/><text x="${L-6}" y="${yy+4}" text-anchor="end" font-size="10" fill="var(--muted)">${n}</text>`}
+ const pts=ds.map((d,i)=>`${L+step*i+step/2},${y(vc[d])}`).join(" ");
+ g+=`<polygon points="${L+step/2},${H-B} ${pts} ${L+step*(ds.length-.5)},${H-B}" fill="var(--accent)" opacity=".15"/><polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round"/>`;
+ ds.forEach((d,i)=>{if(bc[d])g+=`<rect x="${L+step*i+step*.2}" y="${y(bc[d])}" width="${Math.max(2,step*.6)}" height="${H-B-y(bc[d])}" fill="var(--warm)" rx="1.5"/>`;
+  const every=Math.ceil(ds.length/6);if(i%every===0)g+=`<text x="${L+step*i+step/2}" y="${H-6}" text-anchor="middle" font-size="10" fill="var(--muted)">${d.slice(8)}.${d.slice(5,7)}</text>`});
+ const last=ds[ds.length-1];g+=`<circle cx="${L+step*(ds.length-.5)}" cy="${y(vc[last])}" r="4" fill="var(--accent)"/>`;$("tchart").innerHTML=g;
+ const top=(f,map)=>{const c={};v.data.forEach(r=>{const k=r[f]||"direct";c[k]=(c[k]||0)+1});return Object.entries(c).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([k,n])=>`<div class="r"><span>${esc(map?map[k]||k:k)}</span><span>${n}</span></div>`).join("")||'<div class="r"><span>No visits yet</span><span></span></div>'};
+ $("tops").innerHTML=`<div><h4>Top pages</h4>${top("page",PN)}</div><div><h4>Where visitors came from</h4>${top("source")}</div>`}
+$("rng").onchange=traffic;
 </script>
 </body></html>

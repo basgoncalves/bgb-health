@@ -101,4 +101,5 @@ $("f").onsubmit=async e=>{e.preventDefault();const btn=$("pay");btn.disabled=tru
 function alertBox(m){let el=$("err");if(!el){el=document.createElement("p");el.id="err";el.setAttribute("role","alert");el.style.cssText="color:var(--warm);font-weight:600;margin:8px 0 0";$("book").querySelector(".steps").after(el)}el.textContent=m;setTimeout(()=>el.textContent="",6000)}
 $("again").onclick=()=>{$("f").reset();B.svc=null;document.querySelectorAll(".s").forEach(x=>x.setAttribute("aria-pressed",false));$("n1").disabled=true;go(1)};
 </script>
+<script src="track.js" defer></script>
 </body></html>
