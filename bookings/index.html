@@ -38,6 +38,7 @@ input,select{font:inherit;color:var(--fg);background:var(--bg);border:1px solid 
 <div class="w">
 <div class="top"><h1 style="display:flex;align-items:center;gap:10px"><img src="../bgb-icon.svg" alt="" width="32" height="32" style="border-radius:8px">BGB Bookings</h1><a href="../site/">← Client site</a></div>
 
+<p class="msg" id="boot" role="status">Loading…</p>
 <div id="login" class="card" hidden>
  <form id="lf">
   <p class="msg" style="margin:0">Sign in with an approved BGB Health admin account.</p>
@@ -65,12 +66,15 @@ input,select{font:inherit;color:var(--fg);background:var(--bg);border:1px solid 
 const SB="https://gfzqvaumziuiwfrwhhes.supabase.co",KEY="sb_publishable_NxmiKUulD7hNH6CkUsEwIA_ki8EDWyC";
 const VAPID="BCt0Yr_RlL0CW0UgD30q2Z3llFrZumUyMfGBOK-zO7-F2zAkp1EN2L-Q-fqoXmvXG6TYo0h4eiDdnXzvhyLSi24";
 const NAMES={init:"Initial assessment",train:"Training consultation",nutri:"Nutrition consultation",gait:"Running video analysis",coach:"Coaching package",chk:"Follow-up call"};
-const db=supabase.createClient(SB,KEY);const $=i=>document.getElementById(i);
+let db=null;
+function bootFail(m){const b=document.getElementById("boot");b.textContent=m;b.hidden=false;document.getElementById("login").hidden=false;}
+try{db=supabase.createClient(SB,KEY)}catch(e){}
+if(!db){setTimeout(()=>bootFail("Couldn't reach the bookings service. Check your connection and reload the page."),0)}const $=i=>document.getElementById(i);
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const fmt=t=>new Date(t).toLocaleString("en-GB",{timeZone:"Europe/Vienna",weekday:"short",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
 
-async function boot(){let session=null;try{({data:{session}}=await db.auth.getSession())}catch(e){}$("login").hidden=!!session;$("app").hidden=!session;if(session){load();notifState()}}
-db.auth.onAuthStateChange(()=>boot());
+async function boot(){if(!db)return;let session=null;try{({data:{session}}=await Promise.race([db.auth.getSession(),new Promise((_,r)=>setTimeout(()=>r(0),6000))]))}catch(e){}$("boot").hidden=true;$("login").hidden=!!session;$("app").hidden=!session;if(session){load();notifState()}}
+if(db)db.auth.onAuthStateChange(()=>boot());
 
 $("lf").onsubmit=async e=>{e.preventDefault();$("lm").textContent="Signing in…";
  const {error}=await db.auth.signInWithPassword({email:$("le").value,password:$("lp").value});
