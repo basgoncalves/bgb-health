@@ -5,6 +5,7 @@
 <title>Book · BGB Health</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&family=Work+Sans:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="site.css">
+<script src="i18n.js"></script>
 </head><body>
 <div class="draft">Test version. Bookings are saved to the test database; no payment is taken. <a href="../bookings/">Staff login</a></div>
 <div class="w">
@@ -77,7 +78,7 @@ $("svc").onclick=e=>{const b=e.target.closest(".s");if(!b)return;
 $("n1").onclick=()=>{drawDays();go(2)};
 function drawDays(){const out=[],d=new Date();d.setHours(0,0,0,0);
  while(out.length<10){d.setDate(d.getDate()+1);if(d.getDay()!==0)out.push(new Date(d))}
- $("days").innerHTML=out.map((x,i)=>`<button class="day" aria-pressed="false" data-i="${i}" data-d="${x.toISOString()}"><small>${x.toLocaleDateString("en-GB",{weekday:"short"})}</small>${x.getDate()} <small>${x.toLocaleDateString("en-GB",{month:"short"})}</small></button>`).join("");
+ $("days").innerHTML=out.map((x,i)=>`<button class="day" aria-pressed="false" data-i="${i}" data-d="${x.toISOString()}"><small>${x.toLocaleDateString(window.BGB_LOCALE||"en-GB",{weekday:"short"})}</small>${x.getDate()} <small>${x.toLocaleDateString(window.BGB_LOCALE||"en-GB",{month:"short"})}</small></button>`).join("");
  $("slots").innerHTML='<p class="sub" style="grid-column:1/-1;margin:0">Pick a day to see free times.</p>';B.when=null;$("n2").disabled=true}
 $("days").onclick=async e=>{const b=e.target.closest(".day");if(!b)return;
  document.querySelectorAll(".day").forEach(x=>x.setAttribute("aria-pressed",x===b));
@@ -87,7 +88,7 @@ $("days").onclick=async e=>{const b=e.target.closest(".day");if(!b)return;
  $("slots").innerHTML=times.map(t=>`<button class="slot" aria-pressed="false" ${busy.includes(new Date(vienna(d,t)).getTime())?"disabled":""} data-t="${t}">${t}</button>`).join("")};
 $("slots").onclick=e=>{const b=e.target.closest(".slot");if(!b||b.disabled)return;
  document.querySelectorAll(".slot").forEach(x=>x.setAttribute("aria-pressed",x===b));
- B.time=b.dataset.t;B.when=B.day.toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"})+" at "+b.dataset.t;$("n2").disabled=false};
+ B.time=b.dataset.t;B.when=B.day.toLocaleDateString(window.BGB_LOCALE||"en-GB",{weekday:"long",day:"numeric",month:"long"})+" at "+b.dataset.t;$("n2").disabled=false};
 $("n2").onclick=()=>go(3);
 document.querySelectorAll("[data-back]").forEach(b=>b.onclick=()=>go(+b.dataset.back));
 $("f").onsubmit=async e=>{e.preventDefault();const btn=$("pay");btn.disabled=true;btn.textContent="Booking…";
